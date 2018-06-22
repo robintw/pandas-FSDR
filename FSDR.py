@@ -7,7 +7,8 @@ except ImportError:
 
 def FSDR(df, main_col, other_col, rel_thresh=30, abs_thresh=None, return_text=True, markdown=True,
          value_suffix="", comparison_text_larger='larger', comparison_text_smaller='smaller',
-         value_format_str='', intro_text=""):
+         value_format_str='', intro_text="",
+         min_value=None):
     """
     Find Significantly Different Rows (FSDR): finds rows in a pandas DataFrame where the values in
     two columns are significantly different. Significantly different in this context means that the values
@@ -54,6 +55,9 @@ def FSDR(df, main_col, other_col, rel_thresh=30, abs_thresh=None, return_text=Tr
         '.2f' for floating point numbers with two decimal places. (Default: '')
       - intro_text: Text to be included before the list of significant differences. For proper markdown
         formatting this should end in '\n\n'. (Default: '')
+      - min_value: Minimum value (of either main_col or other_col) to be used when calculating significant
+        differences. All rows with values lower than this will be excluded from all calculations. Set to None
+        to disable minimum value checking. (Default: None)
 
     Returns:
         A chunk of human-readable text describing significant differences in the DataFrame (by default, if return_text
@@ -62,6 +66,10 @@ def FSDR(df, main_col, other_col, rel_thresh=30, abs_thresh=None, return_text=Tr
     """
     # Copy df so any changes we make aren't propagated back to the calling function
     df = df.copy()
+
+    if min_value is not None:
+        max_val = df.max(axis=1)
+        df = df[max_val > min_value]
     
     # Calculate difference, absolute difference and percentage difference (relative to main_col)
     diff = df[main_col] - df[other_col]
